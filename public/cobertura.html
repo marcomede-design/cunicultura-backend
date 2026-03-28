@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Cobertura</title>
+
+<style>
+body{
+font-family: Arial;
+max-width:800px;
+margin:40px auto;
+}
+
+.card{
+background:#f5f5f5;
+padding:15px;
+margin:10px 0;
+border-radius:10px;
+}
+
+h1,h2{
+text-align:center;
+}
+
+input, select, button{
+width:100%;
+padding:10px;
+margin:5px 0;
+}
+
+button{
+background:#1565c0;
+color:white;
+border:none;
+cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🐇 Registro de Cobertura</h1>
+
+<h2>Nova Cobertura</h2>
+
+<select id="matriz"></select>
+<select id="macho"></select>
+
+<input type="date" id="dataCobertura">
+
+<button onclick="registrarCobertura()">Registrar</button>
+
+<h2>Histórico de Coberturas</h2>
+
+<div id="lista"></div>
+
+<script>
+
+// 🔥 CARREGAR ANIMAIS
+async function carregarAnimais(){
+const res = await fetch("/animais")
+const animais = await res.json()
+
+const matrizSelect = document.getElementById("matriz")
+const machoSelect = document.getElementById("macho")
+
+matrizSelect.innerHTML=""
+machoSelect.innerHTML=""
+
+animais.forEach(a => {
+
+if(a.sexo === "F"){
+matrizSelect.innerHTML += `<option value="${a.id}">${a.brinco}</option>`
+}
+
+if(a.sexo === "M"){
+machoSelect.innerHTML += `<option value="${a.id}">${a.brinco}</option>`
+}
+
+})
+}
+
+// 🔥 REGISTRAR COBERTURA
+window.registrarCobertura = async function(){
+
+const matrizId = document.getElementById("matriz").value
+const machoId = document.getElementById("macho").value
+const dataCobertura = document.getElementById("dataCobertura").value
+
+if(!matrizId || !machoId || !dataCobertura){
+alert("Preencha todos os campos")
+return
+}
+
+const res = await fetch("/coberturas",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({ matrizId, machoId, dataCobertura })
+})
+
+if(!res.ok){
+const erro = await res.text()
+alert("Erro: " + erro)
+return
+}
+
+alert("Cobertura registrada com sucesso!")
+
+carregarCoberturas()
+}
+
+// 🔥 LISTAR COBERTURAS
+async function carregarCoberturas(){
+
+const res = await fetch("/coberturas")
+
+if(!res.ok){
+console.error("Erro ao buscar coberturas")
+return
+}
+
+const dados = await res.json()
+
+const lista = document.getElementById("lista")
+lista.innerHTML = ""
+
+dados.forEach(c => {
+
+const data = new Date(c.dataCobertura).toLocaleDateString()
+const parto = new Date(c.previsaoParto).toLocaleDateString()
+
+lista.innerHTML += `
+<div class="card">
+<b>Matriz:</b> ${c.matriz.brinco}<br>
+<b>Macho:</b> ${c.macho.brinco}<br>
+<b>Cobertura:</b> ${data}<br>
+<b>Previsão de Parto:</b> ${parto}
+</div>
+`
+})
+
+}
+
+// 🔥 INICIALIZAÇÃO
+carregarAnimais()
+carregarCoberturas()
+
+</script>
+
+</body>
+</html>
