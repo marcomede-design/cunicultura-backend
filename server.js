@@ -1,7 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import { PrismaClient } from "@prisma/client";
+import pkg from "@prisma/client";
+const { PrismaClient } = pkg;
 import { PrismaPg } from "@prisma/adapter-pg";
 
 dotenv.config();
@@ -9,9 +10,8 @@ dotenv.config();
 // 🔥 CONEXÃO COM SSL (RENDER)
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL + "?sslmode=require"
 });
 
 const prisma = new PrismaClient({ adapter });
