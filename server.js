@@ -1,29 +1,31 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import helmet from "helmet";
 import pkg from "@prisma/client";
 const { PrismaClient } = pkg;
 import { PrismaPg } from "@prisma/adapter-pg";
 
 dotenv.config();
 
-// 🔥 CONEXÃO COM SSL (RENDER)
+// 🔥 CONEXÃO COM BANCO (SSL já vem do .env)
 const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL,
-  const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL + "?sslmode=require"
+  connectionString: process.env.DATABASE_URL
 });
 
 const prisma = new PrismaClient({ adapter });
 
-// 🔥 RECONEXÃO AUTOMÁTICA
+// 🔥 RECONEXÃO ROBUSTA
 async function conectarBanco() {
-  try {
-    await prisma.$connect();
-    console.log("✅ Banco conectado");
-  } catch (err) {
-    console.error("❌ Erro ao conectar, tentando novamente...", err);
-    setTimeout(conectarBanco, 5000);
+  while (true) {
+    try {
+      await prisma.$connect();
+      console.log("✅ Banco conectado");
+      break;
+    } catch (err) {
+      console.error("❌ Erro ao conectar, tentando novamente...", err.message);
+      await new Promise(r => setTimeout(r, 5000));
+    }
   }
 }
 
@@ -31,6 +33,7 @@ conectarBanco();
 
 const app = express();
 
+app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
@@ -48,7 +51,7 @@ app.get("/animais", async (req, res) => {
     });
     res.json(animais);
   } catch (error) {
-    console.error(error);
+    console.error(error.message);
     res.status(500).json({ erro: "Erro ao buscar animais" });
   }
 });
@@ -56,6 +59,10 @@ app.get("/animais", async (req, res) => {
 app.post("/animais", async (req, res) => {
   try {
     const { brinco, sexo, raca, nascimento, status = "ativo" } = req.body;
+
+    if (!brinco || !sexo || !raca || !nascimento) {
+      return res.status(400).json({ erro: "Campos obrigatórios" });
+    }
 
     const dataNascimento = new Date(nascimento);
 
@@ -76,8 +83,8 @@ app.post("/animais", async (req, res) => {
     res.json(animal);
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ erro: error.message });
+    console.error(error.message);
+    res.status(500).json({ erro: "Erro ao cadastrar animal" });
   }
 });
 
@@ -111,8 +118,7 @@ app.delete("/animais/:id", async (req, res) => {
     res.json({ mensagem: "Excluído com sucesso" });
 
   } catch (error) {
-
-    console.error("ERRO DELETE:", error);
+    console.error(error.message);
 
     if (error.code === "P2025") {
       return res.status(404).json({ erro: "Animal não encontrado" });
@@ -166,7 +172,7 @@ app.post("/coberturas", async (req, res) => {
     res.json(cobertura);
 
   } catch (error) {
-    console.error(error);
+    console.error(error.message);
     res.status(500).json({ erro: "Erro ao registrar cobertura" });
   }
 });
@@ -182,7 +188,7 @@ app.get("/coberturas", async (req, res) => {
     });
     res.json(coberturas);
   } catch (error) {
-    console.error(error);
+    console.error(error.message);
     res.status(500).json({ erro: "Erro ao buscar coberturas" });
   }
 });
@@ -198,7 +204,7 @@ app.delete("/coberturas/:id", async (req, res) => {
     res.json({ mensagem: "Cobertura excluída" });
 
   } catch (error) {
-    console.error(error);
+    console.error(error.message);
     res.status(500).json({ erro: "Erro ao excluir cobertura" });
   }
 });
@@ -232,7 +238,7 @@ app.post("/ninhadas", async (req, res) => {
     res.json(ninhada);
 
   } catch (error) {
-    console.error(error);
+    console.error(error.message);
     res.status(500).json({ erro: "Erro ao registrar parto" });
   }
 });
@@ -248,7 +254,7 @@ app.delete("/ninhadas/:id", async (req, res) => {
     res.json({ mensagem: "Ninhada excluída" });
 
   } catch (error) {
-    console.error(error);
+    console.error(error.message);
     res.status(500).json({ erro: "Erro ao excluir ninhada" });
   }
 });
@@ -260,9 +266,7 @@ app.get("/matriz/:id/historico", async (req, res) => {
     const id = Number(req.params.id);
 
     if (!id || isNaN(id)) {
-      return res.status(400).json({
-        erro: "ID inválido"
-      });
+      return res.status(400).json({ erro: "ID inválido" });
     }
 
     const matriz = await prisma.animal.findUnique({
@@ -290,8 +294,8 @@ app.get("/matriz/:id/historico", async (req, res) => {
     });
 
   } catch (error) {
-    console.error("ERRO HISTÓRICO:", error);
-    res.status(500).json({ erro: error.message });
+    console.error(error.message);
+    res.status(500).json({ erro: "Erro ao buscar histórico" });
   }
 });
 
@@ -325,7 +329,7 @@ app.get("/dashboard", async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
+    console.error(error.message);
     res.status(500).json({ erro: "Erro no dashboard" });
   }
 });
