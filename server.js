@@ -6,11 +6,28 @@ import { PrismaPg } from "@prisma/adapter-pg";
 
 dotenv.config();
 
+// 🔥 CONEXÃO COM SSL (RENDER)
 const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 const prisma = new PrismaClient({ adapter });
+
+// 🔥 RECONEXÃO AUTOMÁTICA
+async function conectarBanco() {
+  try {
+    await prisma.$connect();
+    console.log("✅ Banco conectado");
+  } catch (err) {
+    console.error("❌ Erro ao conectar, tentando novamente...", err);
+    setTimeout(conectarBanco, 5000);
+  }
+}
+
+conectarBanco();
 
 const app = express();
 
@@ -38,7 +55,7 @@ app.get("/animais", async (req, res) => {
 
 app.post("/animais", async (req, res) => {
   try {
-    const { brinco, sexo, raca, nascimento, status } = req.body;
+    const { brinco, sexo, raca, nascimento, status = "ativo" } = req.body;
 
     const dataNascimento = new Date(nascimento);
 
@@ -157,6 +174,10 @@ app.post("/coberturas", async (req, res) => {
 app.get("/coberturas", async (req, res) => {
   try {
     const coberturas = await prisma.cobertura.findMany({
+      include: {
+        matriz: { select: { brinco: true } },
+        macho: { select: { brinco: true } }
+      },
       orderBy: { dataCobertura: "desc" }
     });
     res.json(coberturas);
@@ -232,16 +253,15 @@ app.delete("/ninhadas/:id", async (req, res) => {
   }
 });
 
-/* ================= HISTÓRICO MATRIZ (CORRIGIDO) ================= */
+/* ================= HISTÓRICO MATRIZ ================= */
 
 app.get("/matriz/:id/historico", async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    // 🔥 VALIDAÇÃO CRÍTICA
     if (!id || isNaN(id)) {
       return res.status(400).json({
-        erro: "ID inválido ou não informado"
+        erro: "ID inválido"
       });
     }
 
@@ -315,5 +335,5 @@ app.get("/dashboard", async (req, res) => {
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log("Servidor rodando na porta", PORT);
+  console.log("🚀 Servidor rodando na porta", PORT);
 });
