@@ -306,15 +306,15 @@ app.get("/dashboard", async (req, res) => {
     const totalAnimais = await prisma.animal.count();
     const totalNinhadas = await prisma.ninhada.count();
 
-    const soma = await prisma.ninhada.aggregate({
-      _sum: {
-        nascidos: true,
-        mortos: true
-      }
-    });
+    const ninhadas = await prisma.ninhada.findMany();
 
-    const nascidos = soma._sum.nascidos || 0;
-    const mortos = soma._sum.mortos || 0;
+    let nascidos = 0;
+    let mortos = 0;
+
+    ninhadas.forEach(n => {
+      nascidos += n.nascidos || 0;
+      mortos += n.mortos || 0;
+    });
 
     const taxa = nascidos > 0
       ? ((mortos / nascidos) * 100).toFixed(2)
@@ -329,11 +329,10 @@ app.get("/dashboard", async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ erro: "Erro no dashboard" });
+    console.error("ERRO DASHBOARD:", error);
+    res.status(500).json({ erro: error.message });
   }
 });
-
 /* ================= SERVIDOR ================= */
 
 const PORT = process.env.PORT || 3001;
