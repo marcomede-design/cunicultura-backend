@@ -1,68 +1,78 @@
-import express from "express";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import prisma from "../config/prisma.js";
+import express from "express"
+import prisma from "../config/prisma.js"
+import bcrypt from "bcrypt"
+import jwt from "jsonwebtoken"
 
-const router = express.Router();
+const router = express.Router()
 
 // REGISTRO
 router.post("/register", async (req, res) => {
   try {
-    const { nome, email, senha } = req.body;
+    const { email, senha, nome } = req.body
 
-    const userExists = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (userExists) {
-      return res.status(400).json({ erro: "Email já cadastrado" });
+    if (!email || !senha || !nome) {
+      return res.status(400).json({ erro: "Nome, email e senha são obrigatórios" })
     }
 
-    const senhaHash = await bcrypt.hash(senha, 10);
+    const usuarioExistente = await prisma.user.findUnique({
+      where: { email },
+    })
 
-    const user = await prisma.user.create({
+    if (usuarioExistente) {
+      return res.status(400).json({ erro: "Usuário já existe" })
+    }
+
+    const senhaHash = await bcrypt.hash(senha, 10)
+
+    const usuario = await prisma.user.create({
       data: {
         nome,
         email,
         senha: senhaHash,
       },
-    });
+    })
 
-    res.json(user);
+    res.json(usuario)
   } catch (err) {
-    res.status(500).json({ erro: "Erro ao registrar usuário" });
+    console.error(err)
+    res.status(500).json({ erro: "Erro no registro" })
   }
-});
+})
 
 // LOGIN
 router.post("/login", async (req, res) => {
   try {
-    const { email, senha } = req.body;
+    const { email, senha } = req.body
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user) {
-      return res.status(400).json({ erro: "Usuário não encontrado" });
+    if (!email || !senha) {
+      return res.status(400).json({ erro: "Email e senha obrigatórios" })
     }
 
-    const senhaValida = await bcrypt.compare(senha, user.senha);
+    const usuario = await prisma.user.findUnique({
+      where: { email },
+    })
+
+    if (!usuario) {
+      return res.status(400).json({ erro: "Usuário não encontrado" })
+    }
+
+    const senhaValida = await bcrypt.compare(senha, usuario.senha)
 
     if (!senhaValida) {
-      return res.status(400).json({ erro: "Senha inválida" });
+      return res.status(400).json({ erro: "Senha inválida" })
     }
 
     const token = jwt.sign(
-      { id: user.id },
+      { userId: usuario.id },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+      { expiresIn: "1d" }
+    )
 
-    res.json({ token });
+    res.json({ token })
   } catch (err) {
-    res.status(500).json({ erro: "Erro no login" });
+    console.error(err)
+    res.status(500).json({ erro: "Erro no login" })
   }
-});
+})
 
-export default router;
+export default router

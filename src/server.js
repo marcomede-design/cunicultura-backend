@@ -1,25 +1,26 @@
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
+import express from "express"
+import dotenv from "dotenv"
+import cors from "cors"
 
-import authRoutes from "./routes/auth.js"; // 👈 IMPORTANTE
+import authRoutes from "./routes/auth.js"
+import animaisRoutes from "./routes/animais.js"
 
-dotenv.config();
+dotenv.config()
 
-const app = express();
+const app = express()
 
-app.use(cors());
-app.use(express.json());
-
-// 🔥 REGISTRAR ROTAS
-app.use("/auth", authRoutes);
+app.use(cors())
+app.use(express.json())
 
 app.get("/", (req, res) => {
-  res.send("API rodando...");
-});
+  res.send("API rodando OK")
+})
 
-const PORT = process.env.PORT || 3000;
+app.use("/auth", authRoutes)
+app.use("/animais", animaisRoutes)
+
+const PORT = 3000
 
 app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
-});
+  console.log(`Servidor rodando na porta ${PORT}`)
+})

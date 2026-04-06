@@ -5,3 +5,23 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  email     String   @unique
+  senha     String
+  createdAt DateTime @default(now())
+
+  animais   Animal[]
+}
+
+model Animal {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  sexo      String
+  createdAt DateTime @default(now())
+
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+}
