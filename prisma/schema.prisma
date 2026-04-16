@@ -13,7 +13,6 @@ model User {
   email     String   @unique
   senha     String
   createdAt DateTime @default(now())
-
   animais   Animal[]
 }
 
@@ -22,7 +21,6 @@ model Animal {
   nome      String
   sexo      String
   createdAt DateTime @default(now())
-
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
 }
