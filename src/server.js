@@ -2,6 +2,7 @@ import express from "express"
 import cors from "cors"
 import authRoutes from "./routes/auth.js"
 import animaisRoutes from "./routes/animais.js"
+import reproducaoRoutes from "./routes/reproducao.js"
 
 const app = express()
 app.use(cors())
@@ -13,6 +14,7 @@ app.get("/", (req, res) => {
 
 app.use("/auth", authRoutes)
 app.use("/animais", animaisRoutes)
+app.use("/reproducao", reproducaoRoutes)
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {

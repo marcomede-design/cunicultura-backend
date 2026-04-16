@@ -23,4 +23,36 @@ model Animal {
   createdAt DateTime @default(now())
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
+
+  reproducoesComomMatrix  Reproducao[] @relation("MatrizReproducoes")
+  coberturasComomReprodutor Reproducao[] @relation("ReprodutorCoberturas")
+}
+
+model Reproducao {
+  id                    Int       @id @default(autoincrement())
+  dataCobertura         DateTime
+  dataConfirmacaoPrenhez DateTime?
+  confirmadaPrenhez     Boolean   @default(false)
+  dataParto             DateTime?
+  dataDesmame           DateTime?
+  observacoes           String?
+  createdAt             DateTime  @default(now())
+
+  matrizId    Int
+  matriz      Animal   @relation("MatrizReproducoes", fields: [matrizId], references: [id])
+  reproducaoId Int?
+  reprodutor  Animal?  @relation("ReprodutorCoberturas", fields: [reproducaoId], references: [id])
+
+  ninhada     Ninhada?
+}
+
+model Ninhada {
+  id            Int      @id @default(autoincrement())
+  totalNascidos Int
+  nascidosVivos Int
+  nascidosMortos Int
+  createdAt     DateTime @default(now())
+
+  reproducaoId  Int      @unique
+  reproducao    Reproducao @relation(fields: [reproducaoId], references: [id])
 }
