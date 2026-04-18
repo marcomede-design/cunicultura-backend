@@ -3,7 +3,9 @@ import cors from "cors"
 import authRoutes from "./routes/auth.js"
 import animaisRoutes from "./routes/animais.js"
 import reproducaoRoutes from "./routes/reproducao.js"
+import ninhadasRoutes from "./routes/ninhadas.js"
 
+app.use("/ninhadas", ninhadasRoutes)
 const app = express()
 app.use(cors())
 app.use(express.json())

@@ -47,12 +47,30 @@ model Reproducao {
 }
 
 model Ninhada {
-  id            Int      @id @default(autoincrement())
-  totalNascidos Int
-  nascidosVivos Int
-  nascidosMortos Int
-  createdAt     DateTime @default(now())
+  id              Int       @id @default(autoincrement())
+  totalNascidos   Int
+  nascidosVivos   Int
+  nascidosMortos  Int
+  machos          Int?
+  femeas          Int?
+  pesoMedioNascer Float?
+  pesoMedioDesmame Float?
+  vivosAtual      Int?
+  createdAt       DateTime  @default(now())
 
-  reproducaoId  Int      @unique
-  reproducao    Reproducao @relation(fields: [reproducaoId], references: [id])
+  reproducaoId    Int       @unique
+  reproducao      Reproducao @relation(fields: [reproducaoId], references: [id])
+
+  mortalidades    Mortalidade[]
+}
+
+model Mortalidade {
+  id          Int      @id @default(autoincrement())
+  data        DateTime
+  quantidade  Int
+  causa       String?
+  createdAt   DateTime @default(now())
+
+  ninhadaId   Int
+  ninhada     Ninhada  @relation(fields: [ninhadaId], references: [id])
 }
