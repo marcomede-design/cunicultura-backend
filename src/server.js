@@ -4,6 +4,7 @@ import authRoutes from "./routes/auth.js"
 import animaisRoutes from "./routes/animais.js"
 import reproducaoRoutes from "./routes/reproducao.js"
 import ninhadasRoutes from "./routes/ninhadas.js"
+import dashboardRoutes from "./routes/dashboard.js"
 
 const app = express()
 app.use(cors())
@@ -17,6 +18,7 @@ app.use("/auth", authRoutes)
 app.use("/animais", animaisRoutes)
 app.use("/reproducao", reproducaoRoutes)
 app.use("/ninhadas", ninhadasRoutes)
+app.use("/dashboard", dashboardRoutes)
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
