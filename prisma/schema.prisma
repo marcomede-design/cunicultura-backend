@@ -24,8 +24,10 @@ model Animal {
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
 
-  reproducoesComomMatrix  Reproducao[] @relation("MatrizReproducoes")
+  reproducoesComomMatrix    Reproducao[] @relation("MatrizReproducoes")
   coberturasComomReprodutor Reproducao[] @relation("ReprodutorCoberturas")
+  alimentacoes              Alimentacao[]
+  registrosSaude            Saude[]
 }
 
 model Reproducao {
@@ -73,4 +75,33 @@ model Mortalidade {
 
   ninhadaId   Int
   ninhada     Ninhada  @relation(fields: [ninhadaId], references: [id])
+}
+
+model Alimentacao {
+  id          Int      @id @default(autoincrement())
+  data        DateTime
+  tipo        String
+  quantidade  Float
+  unidade     String
+  observacoes String?
+  createdAt   DateTime @default(now())
+
+  animalId    Int
+  animal      Animal   @relation(fields: [animalId], references: [id])
+}
+
+model Saude {
+  id          Int      @id @default(autoincrement())
+  data        DateTime
+  tipo        String
+  descricao   String
+  tratamento  String?
+  medicamento String?
+  dose        String?
+  observacoes String?
+  resolvido   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  animalId    Int
+  animal      Animal   @relation(fields: [animalId], references: [id])
 }
