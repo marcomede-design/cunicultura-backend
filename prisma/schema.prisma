@@ -17,12 +17,15 @@ model User {
 }
 
 model Animal {
-  id        Int      @id @default(autoincrement())
-  nome      String
-  sexo      String
-  createdAt DateTime @default(now())
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
+  id             Int      @id @default(autoincrement())
+  nome           String
+  sexo           String
+  historico      String?
+  raca           String?
+  pesoMonta      Float?
+  createdAt      DateTime @default(now())
+  userId         Int
+  user           User     @relation(fields: [userId], references: [id])
 
   reproducoesComomMatrix    Reproducao[] @relation("MatrizReproducoes")
   coberturasComomReprodutor Reproducao[] @relation("ReprodutorCoberturas")
@@ -31,50 +34,52 @@ model Animal {
 }
 
 model Reproducao {
-  id                    Int       @id @default(autoincrement())
-  dataCobertura         DateTime
+  id                     Int       @id @default(autoincrement())
+  dataCobertura          DateTime
+  tipoCobracao           String?
   dataConfirmacaoPrenhez DateTime?
-  confirmadaPrenhez     Boolean   @default(false)
-  dataParto             DateTime?
-  dataDesmame           DateTime?
-  observacoes           String?
-  createdAt             DateTime  @default(now())
+  diagGestacao           String?
+  confirmadaPrenhez      Boolean   @default(false)
+  dataParto              DateTime?
+  dataDesmame            DateTime?
+  observacoes            String?
+  createdAt              DateTime  @default(now())
 
-  matrizId    Int
-  matriz      Animal   @relation("MatrizReproducoes", fields: [matrizId], references: [id])
+  matrizId     Int
+  matriz       Animal   @relation("MatrizReproducoes", fields: [matrizId], references: [id])
   reproducaoId Int?
-  reprodutor  Animal?  @relation("ReprodutorCoberturas", fields: [reproducaoId], references: [id])
+  reprodutor   Animal?  @relation("ReprodutorCoberturas", fields: [reproducaoId], references: [id])
 
-  ninhada     Ninhada?
+  ninhada Ninhada?
 }
 
 model Ninhada {
-  id              Int       @id @default(autoincrement())
-  totalNascidos   Int
-  nascidosVivos   Int
-  nascidosMortos  Int
-  machos          Int?
-  femeas          Int?
-  pesoMedioNascer Float?
+  id               Int       @id @default(autoincrement())
+  totalNascidos    Int
+  nascidosVivos    Int
+  nascidosMortos   Int
+  machos           Int?
+  femeas           Int?
+  pesoMedioNascer  Float?
   pesoMedioDesmame Float?
-  vivosAtual      Int?
-  createdAt       DateTime  @default(now())
+  vivosAtual       Int?
+  createdAt        DateTime  @default(now())
 
-  reproducaoId    Int       @unique
-  reproducao      Reproducao @relation(fields: [reproducaoId], references: [id])
+  reproducaoId Int        @unique
+  reproducao   Reproducao @relation(fields: [reproducaoId], references: [id])
 
-  mortalidades    Mortalidade[]
+  mortalidades Mortalidade[]
 }
 
 model Mortalidade {
-  id          Int      @id @default(autoincrement())
-  data        DateTime
-  quantidade  Int
-  causa       String?
-  createdAt   DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  data       DateTime
+  quantidade Int
+  causa      String?
+  createdAt  DateTime @default(now())
 
-  ninhadaId   Int
-  ninhada     Ninhada  @relation(fields: [ninhadaId], references: [id])
+  ninhadaId Int
+  ninhada   Ninhada @relation(fields: [ninhadaId], references: [id])
 }
 
 model Alimentacao {
@@ -86,8 +91,8 @@ model Alimentacao {
   observacoes String?
   createdAt   DateTime @default(now())
 
-  animalId    Int
-  animal      Animal   @relation(fields: [animalId], references: [id])
+  animalId Int
+  animal   Animal @relation(fields: [animalId], references: [id])
 }
 
 model Saude {
@@ -102,6 +107,6 @@ model Saude {
   resolvido   Boolean  @default(false)
   createdAt   DateTime @default(now())
 
-  animalId    Int
-  animal      Animal   @relation(fields: [animalId], references: [id])
+  animalId Int
+  animal   Animal @relation(fields: [animalId], references: [id])
 }
