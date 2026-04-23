@@ -8,6 +8,7 @@ import dashboardRoutes from "./routes/dashboard.js"
 import alimentacaoRoutes from "./routes/alimentacao.js"
 import saudeRoutes from "./routes/saude.js"
 import forcaSelecaoRoutes from "./routes/forcaSelecao.js"
+import engordaRoutes from "./routes/engorda.js"
 
 const app = express()
 app.use(cors())
@@ -25,6 +26,7 @@ app.use("/dashboard", dashboardRoutes)
 app.use("/alimentacao", alimentacaoRoutes)
 app.use("/saude", saudeRoutes)
 app.use("/forca-selecao", forcaSelecaoRoutes)
+app.use("/engorda", engordaRoutes)
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
