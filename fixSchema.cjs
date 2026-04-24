@@ -1,4 +1,6 @@
-generator client {
+const fs = require('fs')
+
+const schema = `generator client {
   provider = "prisma-client-js"
 }
 
@@ -155,4 +157,7 @@ model LancamentoFinanceiro {
   createdAt   DateTime @default(now())
   userId      Int
   user        User     @relation(fields: [userId], references: [id])
-}
+}`
+
+fs.writeFileSync('prisma/schema.prisma', schema, 'utf8')
+console.log('schema.prisma reescrito com sucesso!')
