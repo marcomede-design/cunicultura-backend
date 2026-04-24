@@ -2,30 +2,26 @@ import express from "express"
 import prisma from "../config/prisma.js"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
+import { autenticar } from "../middleware/auth.js"
 
 const router = express.Router()
-
-console.log("JWT_SECRET:", process.env.JWT_SECRET ? "OK" : "NÃO ENCONTRADO")
 
 router.post("/register", async (req, res) => {
   try {
     const { email, senha, nome } = req.body
     if (!email || !senha || !nome) {
-      return res.status(400).json({ erro: "Nome, email e senha são obrigatórios" })
+      return res.status(400).json({ erro: "Nome, email e senha sao obrigatorios" })
     }
-    const usuarioExistente = await prisma.user.findUnique({
-      where: { email },
-    })
+    const usuarioExistente = await prisma.user.findUnique({ where: { email } })
     if (usuarioExistente) {
-      return res.status(400).json({ erro: "Usuário já existe" })
+      return res.status(400).json({ erro: "Usuario ja existe" })
     }
     const senhaHash = await bcrypt.hash(senha, 10)
     const usuario = await prisma.user.create({
-      data: { nome, email, senha: senhaHash },
+      data: { nome, email, senha: senhaHash }
     })
     res.json(usuario)
   } catch (err) {
-    console.error(err)
     res.status(500).json({ erro: err.message })
   }
 })
@@ -34,26 +30,35 @@ router.post("/login", async (req, res) => {
   try {
     const { email, senha } = req.body
     if (!email || !senha) {
-      return res.status(400).json({ erro: "Email e senha obrigatórios" })
+      return res.status(400).json({ erro: "Email e senha obrigatorios" })
     }
-    const usuario = await prisma.user.findUnique({
-      where: { email },
-    })
+    const usuario = await prisma.user.findUnique({ where: { email } })
     if (!usuario) {
-      return res.status(400).json({ erro: "Usuário não encontrado" })
+      return res.status(400).json({ erro: "Usuario nao encontrado" })
     }
     const senhaValida = await bcrypt.compare(senha, usuario.senha)
     if (!senhaValida) {
-      return res.status(400).json({ erro: "Senha inválida" })
+      return res.status(400).json({ erro: "Senha invalida" })
     }
     const token = jwt.sign(
-  { userId: usuario.id },
-  process.env.JWT_SECRET || "cunicultura_granja_2025_secret",
-  { expiresIn: "1d" }
-)
+      { userId: usuario.id },
+      process.env.JWT_SECRET || "cunicultura_granja_2025_secret",
+      { expiresIn: "30d" }
+    )
     res.json({ token })
   } catch (err) {
-    console.error(err)
+    res.status(500).json({ erro: err.message })
+  }
+})
+
+router.get("/me", autenticar, async (req, res) => {
+  try {
+    const usuario = await prisma.user.findUnique({
+      where: { id: req.userId },
+      select: { id: true, nome: true, email: true, createdAt: true }
+    })
+    res.json(usuario)
+  } catch (err) {
     res.status(500).json({ erro: err.message })
   }
 })
