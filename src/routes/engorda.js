@@ -5,7 +5,6 @@ import { autenticar } from "../middleware/auth.js"
 const router = express.Router()
 const prisma = new PrismaClient()
 
-// Criar lote
 router.post("/lotes", autenticar, async (req, res) => {
   const { nome, descricao, dataInicio, qtdAnimais } = req.body
   try {
@@ -23,7 +22,6 @@ router.post("/lotes", autenticar, async (req, res) => {
   }
 })
 
-// Listar lotes
 router.get("/lotes", autenticar, async (req, res) => {
   try {
     const lotes = await prisma.loteEngorda.findMany({
@@ -39,12 +37,12 @@ router.get("/lotes", autenticar, async (req, res) => {
       const pesagens = lote.pesagens
       const consumos = lote.consumos
 
-      const pesoInicial = pesagens.length > 0 ? pesagens[0].pesoTotal : 0
-      const pesoFinal = pesagens.length > 0 ? pesagens[pesagens.length - 1].pesoTotal : 0
+      const pesagensValidas = pesagens.filter(p => p.pesoTotal > 0)
+      const pesoInicial = pesagensValidas.length > 0 ? pesagensValidas[0].pesoTotal : 0
+      const pesoFinal = pesagensValidas.length > 0 ? pesagensValidas[pesagensValidas.length - 1].pesoTotal : 0
       const ganho = pesoFinal - pesoInicial
 
       const totalConsumo = consumos.reduce((acc, c) => acc + c.quantidade, 0)
-
       const conversaoAlimentar = ganho > 0 ? (totalConsumo / ganho).toFixed(2) : null
 
       const consumoPorTipo = {}
@@ -73,7 +71,6 @@ router.get("/lotes", autenticar, async (req, res) => {
   }
 })
 
-// Encerrar lote
 router.patch("/lotes/:id/encerrar", autenticar, async (req, res) => {
   try {
     const lote = await prisma.loteEngorda.update({
@@ -86,7 +83,6 @@ router.patch("/lotes/:id/encerrar", autenticar, async (req, res) => {
   }
 })
 
-// Registrar pesagem
 router.post("/lotes/:id/pesagens", autenticar, async (req, res) => {
   const { data, pesoTotal, qtdAnimais, observacoes } = req.body
   const pesoMedio = pesoTotal / qtdAnimais
@@ -107,7 +103,6 @@ router.post("/lotes/:id/pesagens", autenticar, async (req, res) => {
   }
 })
 
-// Registrar consumo
 router.post("/lotes/:id/consumos", autenticar, async (req, res) => {
   const { data, tipo, marca, quantidade, unidade, observacoes } = req.body
   try {
@@ -128,7 +123,6 @@ router.post("/lotes/:id/consumos", autenticar, async (req, res) => {
   }
 })
 
-// Buscar lote específico
 router.get("/lotes/:id", autenticar, async (req, res) => {
   try {
     const lote = await prisma.loteEngorda.findUnique({
