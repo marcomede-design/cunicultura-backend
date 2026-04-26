@@ -5,9 +5,17 @@ const router = express.Router()
 
 router.post("/", autenticar, async (req, res) => {
   try {
-    const { nome, sexo, historico, raca, pelagem, pesoMonta } = req.body
+    const { nome, sexo, historico, raca, pelagem, castrado, pesoAtual, dataNascimento, veterinario, pesoMonta } = req.body
     const animal = await prisma.animal.create({
-      data: { nome, sexo, historico, raca, pelagem, pesoMonta: pesoMonta ? parseFloat(pesoMonta) : null, userId: req.userId }
+      data: {
+        nome, sexo, historico, raca, pelagem,
+        castrado: castrado !== undefined ? Boolean(castrado) : null,
+        pesoAtual: pesoAtual ? parseFloat(pesoAtual) : null,
+        dataNascimento: dataNascimento ? new Date(dataNascimento) : null,
+        veterinario,
+        pesoMonta: pesoMonta ? parseFloat(pesoMonta) : null,
+        userId: req.userId
+      }
     })
     res.json(animal)
   } catch (err) {
@@ -48,10 +56,17 @@ router.get("/:id", autenticar, async (req, res) => {
 
 router.put("/:id", autenticar, async (req, res) => {
   try {
-    const { nome, sexo, historico, raca, pelagem, pesoMonta } = req.body
+    const { nome, sexo, historico, raca, pelagem, castrado, pesoAtual, dataNascimento, veterinario, pesoMonta } = req.body
     const animal = await prisma.animal.update({
       where: { id: Number(req.params.id) },
-      data: { nome, sexo, historico, raca, pelagem, pesoMonta: pesoMonta ? parseFloat(pesoMonta) : null }
+      data: {
+        nome, sexo, historico, raca, pelagem,
+        castrado: castrado !== undefined ? Boolean(castrado) : null,
+        pesoAtual: pesoAtual ? parseFloat(pesoAtual) : null,
+        dataNascimento: dataNascimento ? new Date(dataNascimento) : null,
+        veterinario,
+        pesoMonta: pesoMonta ? parseFloat(pesoMonta) : null
+      }
     })
     res.json(animal)
   } catch (err) {
