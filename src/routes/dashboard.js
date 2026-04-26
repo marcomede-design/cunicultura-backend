@@ -1,7 +1,6 @@
 import express from "express"
 import { PrismaClient } from "@prisma/client"
 import { autenticar } from "../middleware/auth.js"
-
 const router = express.Router()
 const prisma = new PrismaClient()
 
@@ -9,17 +8,24 @@ router.get("/", autenticar, async (req, res) => {
   try {
     const hoje = new Date()
     const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1)
+    const userId = req.userId
 
-    const totalAnimais = await prisma.animal.count({ where: { userId: req.userId } })
-    const totalFemeas = await prisma.animal.count({ where: { userId: req.userId, sexo: "F" } })
-    const totalMachos = await prisma.animal.count({ where: { userId: req.userId, sexo: "M" } })
+    const totalAnimais = await prisma.animal.count({ where: { userId } })
+    const totalFemeas = await prisma.animal.count({ where: { userId, sexo: "F" } })
+    const totalMachos = await prisma.animal.count({ where: { userId, sexo: "M" } })
 
     const partosMes = await prisma.reproducao.count({
-      where: { dataParto: { gte: inicioMes } }
+      where: {
+        dataParto: { gte: inicioMes },
+        matriz: { userId }
+      }
     })
 
     const ninhadasMes = await prisma.ninhada.findMany({
-      where: { createdAt: { gte: inicioMes } }
+      where: {
+        createdAt: { gte: inicioMes },
+        reproducao: { matriz: { userId } }
+      }
     })
 
     const mediaFilhotes = ninhadasMes.length > 0
@@ -27,6 +33,7 @@ router.get("/", autenticar, async (req, res) => {
       : 0
 
     const todasNinhadas = await prisma.ninhada.findMany({
+      where: { reproducao: { matriz: { userId } } },
       include: { mortalidades: true }
     })
 
@@ -38,7 +45,10 @@ router.get("/", autenticar, async (req, res) => {
       : 0
 
     const reproducoes = await prisma.reproducao.findMany({
-      where: { dataParto: null },
+      where: {
+        dataParto: null,
+        matriz: { userId }
+      },
       include: { matriz: true, ninhada: true }
     })
 
@@ -48,8 +58,8 @@ router.get("/", autenticar, async (req, res) => {
         const dias = Math.ceil((new Date(r.dataConfirmacaoPrenhez) - hoje) / (1000 * 60 * 60 * 24))
         if (dias <= 2) alertas.push({
           tipo: dias < 0 ? "danger" : "warning",
-          mensagem: `Matriz ${r.matriz.nome} — confirmar prenhez`,
-          detalhe: dias < 0 ? `Atrasado ${Math.abs(dias)} dia(s)` : `Prazo: ${dias === 0 ? "hoje" : `em ${dias} dia(s)`}`
+          mensagem: "Matriz " + r.matriz.nome + " - confirmar prenhez",
+          detalhe: dias < 0 ? "Atrasado " + Math.abs(dias) + " dia(s)" : "Prazo: " + (dias === 0 ? "hoje" : "em " + dias + " dia(s)")
         })
       }
       if (r.confirmadaPrenhez) {
@@ -58,16 +68,16 @@ router.get("/", autenticar, async (req, res) => {
         const dias = Math.ceil((partoPrevisto - hoje) / (1000 * 60 * 60 * 24))
         if (dias <= 3) alertas.push({
           tipo: dias < 0 ? "danger" : "warning",
-          mensagem: `Matriz ${r.matriz.nome} — parto ${dias < 0 ? "atrasado" : "previsto"}`,
-          detalhe: dias < 0 ? `Previsto há ${Math.abs(dias)} dia(s)` : `Em ${dias} dia(s)`
+          mensagem: "Matriz " + r.matriz.nome + " - parto " + (dias < 0 ? "atrasado" : "previsto"),
+          detalhe: dias < 0 ? "Previsto ha " + Math.abs(dias) + " dia(s)" : "Em " + dias + " dia(s)"
         })
       }
-      if (r.ninhada?.dataDesmame) {
+      if (r.ninhada && r.ninhada.dataDesmame) {
         const dias = Math.ceil((new Date(r.ninhada.dataDesmame) - hoje) / (1000 * 60 * 60 * 24))
         if (dias <= 3 && dias >= 0) alertas.push({
           tipo: "info",
-          mensagem: `Ninhada — desmame em ${dias} dia(s)`,
-          detalhe: `${r.ninhada.vivosAtual ?? r.ninhada.nascidosVivos} filhotes vivos`
+          mensagem: "Ninhada - desmame em " + dias + " dia(s)",
+          detalhe: (r.ninhada.vivosAtual ?? r.ninhada.nascidosVivos) + " filhotes vivos"
         })
       }
     })
