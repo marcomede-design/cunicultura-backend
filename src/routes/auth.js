@@ -8,7 +8,7 @@ const router = express.Router()
 
 router.post("/register", async (req, res) => {
   try {
-    const { email, senha, nome } = req.body
+    const { email, senha, nome, nomeGranja } = req.body
     if (!email || !senha || !nome) {
       return res.status(400).json({ erro: "Nome, email e senha sao obrigatorios" })
     }
@@ -18,7 +18,7 @@ router.post("/register", async (req, res) => {
     }
     const senhaHash = await bcrypt.hash(senha, 10)
     const usuario = await prisma.user.create({
-      data: { nome, email, senha: senhaHash }
+      data: { nome, email, senha: senhaHash, nomeGranja: nomeGranja || null }
     })
     res.json(usuario)
   } catch (err) {
@@ -55,7 +55,21 @@ router.get("/me", autenticar, async (req, res) => {
   try {
     const usuario = await prisma.user.findUnique({
       where: { id: req.userId },
-      select: { id: true, nome: true, email: true, createdAt: true }
+      select: { id: true, nome: true, email: true, nomeGranja: true, createdAt: true }
+    })
+    res.json(usuario)
+  } catch (err) {
+    res.status(500).json({ erro: err.message })
+  }
+})
+
+router.put("/me", autenticar, async (req, res) => {
+  try {
+    const { nome, nomeGranja } = req.body
+    const usuario = await prisma.user.update({
+      where: { id: req.userId },
+      data: { nome, nomeGranja },
+      select: { id: true, nome: true, email: true, nomeGranja: true }
     })
     res.json(usuario)
   } catch (err) {

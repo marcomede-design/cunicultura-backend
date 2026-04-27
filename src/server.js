@@ -10,6 +10,7 @@ import saudeRoutes from "./routes/saude.js"
 import forcaSelecaoRoutes from "./routes/forcaSelecao.js"
 import engordaRoutes from "./routes/engorda.js"
 import financeiroRoutes from "./routes/financeiro.js"
+import genealogiaRoutes from "./routes/genealogia.js"
 
 const app = express()
 app.use(cors())
@@ -29,6 +30,7 @@ app.use("/saude", saudeRoutes)
 app.use("/forca-selecao", forcaSelecaoRoutes)
 app.use("/engorda", engordaRoutes)
 app.use("/financeiro", financeiroRoutes)
+app.use("/genealogia", genealogiaRoutes)
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
